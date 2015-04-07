@@ -1,12 +1,13 @@
 # Install Docker
 wget -qO- https://get.docker.com/ | sh
+HOSTNAME=$(hostname -i)
 
 ## ETCD
 docker run \
     --net=host \
     -d kubernetes/etcd:2.0.5.1 \
     /usr/local/bin/etcd \
-        --addr=$(hostname -i):4001 \
+        --addr=$HOSTNAME:4001 \
         --bind-addr=0.0.0.0:4001 \
         --data-dir=/var/etcd/data
 
@@ -16,7 +17,7 @@ docker run \
     -d \
     -v /var/run/docker.sock:/var/run/docker.sock\
     gcr.io/google-containers/hyperkube:v0.14.1 \
-    /hyperkube kubelet \
+      /hyperkube kubelet \
         --api_servers=http://localhost:8080 \
         --v=2 \
         --address=0.0.0.0 \
@@ -24,15 +25,13 @@ docker run \
         --hostname_override=127.0.0.1 \
         --config=/etc/kubernetes/manifests
 
-#!/bin/bash 
-
 ## Proxy which changes IP Tables Rules
 docker run \
     -d \
     --net=host \
     --privileged \
     gcr.io/google_containers/hyperkube:v0.14.1 \
-    /hyperkube proxy \
+      /hyperkube proxy \
         --master=http://127.0.0.1:8080 \
         --v=2
 
