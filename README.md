@@ -1,6 +1,6 @@
 # kube-init
 
-Easy way to deploy a Kubernates Cluster on a Linux Server
+Easiest way to deploy a Kubernetes Cluster to learn Kubernetes
 
 1. Create Linux Box from your favourite cloud provider
 2. Then apply `wget -qO- http://git.io/veKCI | sh`
