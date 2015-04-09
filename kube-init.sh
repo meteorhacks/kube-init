@@ -39,7 +39,7 @@ docker run \
 
 ## Installing kubectl
 ARCH=$(python -c 'import platform; print platform.architecture()[0]')
-if [[ ${ARCH} == '64bit' ]]; then
+if [ ${ARCH} == '64bit' ]; then
   KUBECTL_ARCH=amd64
 else
   KUBECTL_ARCH=386
@@ -125,10 +125,10 @@ rm /tmp/kube-dns-rc.yaml /tmp/kube-dns-service.yaml
 
 echo
 echo "=> Waiting for DNS setup comes online. (takes upto 2-5 minute)"
-while [[ 1 ]]; do
+while [ 1 ]; do
     #statements
     ok=$(kubectl get pod -l k8s-app=kube-dns | grep "Running")
-    if [[ $ok ]]; then
+    if [ $ok ]; then
         break
     fi
     sleep 1
