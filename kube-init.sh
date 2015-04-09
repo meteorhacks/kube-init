@@ -1,7 +1,3 @@
-# Install Docker
-wget -qO- https://get.docker.com/ | sh
-HOSTNAME=$(hostname -i)
-
 ## ETCD
 docker run \
     --net=host \
@@ -118,6 +114,27 @@ selector:
   k8s-app: kube-dns
 EOF
 
+waitFor() {
+    cmd=$1
+    while [ 1 ]; do
+        ok=`$cmd`
+        if [ "$ok" ]; then
+            break
+        fi
+        sleep 1
+    done
+}
+
+echo "=> Waiting for ETCD. (this will take upto 2-5 minute)"
+waitFor 'wget -qO- http://127.0.0.1:4001/version | grep "releaseVersion"'
+echo "=>  ETCD is now online."
+echo
+
+echo "=> Waiting for Kubernates API. (this take upto 2-5 minute)"
+waitFor 'wget -qO- http://127.0.0.1:8080/version | grep "major"'
+echo "=>  Kubernates API is now online."
+echo
+
 kubectl create -f /tmp/kube-dns-rc.yaml
 kubectl create -f /tmp/kube-dns-service.yaml
 
@@ -125,14 +142,7 @@ rm /tmp/kube-dns-rc.yaml /tmp/kube-dns-service.yaml
 
 echo
 echo "=> Waiting for DNS setup comes online. (takes upto 2-5 minute)"
-while [ 1 ]; do
-    #statements
-    ok=$(kubectl get pod -l k8s-app=kube-dns | grep "Running")
-    if [ $ok ]; then
-        break
-    fi
-    sleep 1
-done
+waitFor 'kubectl get pod -l k8s-app=kube-dns | grep "Running"'
 echo "=>  DNS confguration completed."
 
 ## Done
