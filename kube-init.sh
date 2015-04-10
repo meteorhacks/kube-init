@@ -7,17 +7,51 @@ docker run \
         --bind-addr=0.0.0.0:4001 \
         --data-dir=/var/etcd/data
 
-## HyperKube
+## HyperKube apiserver
 docker run \
     --net=host \
     -d \
     -v /var/run/docker.sock:/var/run/docker.sock\
-    gcr.io/google-containers/hyperkube:v0.14.1 \
+    meteorhacks/hyperkube \
+      /hyperkube apiserver \
+      --portal_net=10.0.0.1/24 \
+      --address=127.0.0.1 \
+      --etcd_servers=http://127.0.0.1:4001 \
+      --cluster_name=kubernetes \
+      --v=2
+
+## HyperKube controller-manager
+docker run \
+    --net=host \
+    -d \
+    -v /var/run/docker.sock:/var/run/docker.sock\
+    meteorhacks/hyperkube \
+      /hyperkube controller-manager \
+      --master=127.0.0.1:8080 \
+      --machines=127.0.0.1 \
+      --sync_nodes=true \
+      --v=2
+
+## HyperKube scheduler
+docker run \
+    --net=host \
+    -d \
+    -v /var/run/docker.sock:/var/run/docker.sock\
+    meteorhacks/hyperkube \
+      /hyperkube scheduler \
+      --master=127.0.0.1:8080 \
+      --v=2
+
+## HyperKube kubelet
+docker run \
+    --net=host \
+    -d \
+    -v /var/run/docker.sock:/var/run/docker.sock\
+    meteorhacks/hyperkube \
       /hyperkube kubelet \
-        --api_servers=http://localhost:8080 \
+        --api_servers=http://127.0.0.1:8080 \
         --v=2 \
         --address=0.0.0.0 \
-        --enable_server \
         --hostname_override=127.0.0.1 \
         --cluster_dns=10.0.0.10 \
         --cluster_domain="kubernetes.local" \
@@ -33,17 +67,13 @@ docker run \
         --master=http://127.0.0.1:8080 \
         --v=2
 
-## Installing kubectl
-ARCH=$(python -c 'import platform; print platform.architecture()[0]')
-if [ ${ARCH} == '64bit' ]; then
-  KUBECTL_ARCH=amd64
-else
-  KUBECTL_ARCH=386
-fi
-
-wget http://storage.googleapis.com/kubernetes-release/release/v0.14.1/bin/linux/$KUBECTL_ARCH/kubectl
-chmod +x kubectl
-mv kubectl /usr/local/bin
+## kubectl
+cat <<EOF > /usr/local/bin/kubectl
+#!/bin/bash
+ARGS="$1 $2 $3 $4 $5 $6 $7 $8 $9"
+docker run --rm --net=host meteorhacks/hyperkube /bin/bash -c "/kubectl $ARGS"
+EOF
+chmod +x /usr/local/bin/kubectl
 
 ## Add DNS Support
 cat <<EOF > /tmp/kube-dns-rc.yaml
