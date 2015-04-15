@@ -11,11 +11,11 @@ Easiest way to deploy a Kubernetes Cluster to learn Kubernetes
 ### Configure Network Access (optional)
 Now we need to configure your local machine to access the Kubernetes network.
 
-1. Let's create a SOCKS proxy via your server with command: `ssh -D 8082 root@your-server-ip`
-2. Then configure your browser to use a SOCKS proxy with `port=8082` and `host=localhost`
-3. You can access IPs assigned by kubernetes directly from your browser
+1. Let's create a SOCKS proxy server with this command: `ssh -D 8082 root@your-server-ip`
+2. Then configure your browser to use the above SOCKS proxy with `port=8082` and `host=localhost`
+3. Now, you can access IPs assigned by kubernetes directly from your browser
 
 ### Start Learning
 1. Starting Learning Kuberneted from here: <>
 2. Then choose any tutorial you like and start playing with kubernetes
-3. You can also select your step by step guide to Kubernetes.
+3. You can also select our step by step guide to Kubernetes.
