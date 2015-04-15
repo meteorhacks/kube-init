@@ -1,3 +1,19 @@
+UBUNTU_DISTRO=`uname -a | grep Ubuntu`
+ARCHI=`uname -m`
+
+if [ ! "$UBUNTU_DISTRO" ]; then
+  echo "=> kube-init requires a Ubuntu distro (64 bit)"
+  exit 1
+fi
+
+if [ $ARCHI != "x86_64" ]; then
+  echo "=> kube-init requires a 64 bit Ubuntu distro"
+  exit 1
+fi
+
+# Install Docker 
+wget -qO- https://get.docker.com/ | sh
+
 ## ETCD
 docker run \
     --net=host \
@@ -62,17 +78,13 @@ docker run \
     -d \
     --net=host \
     --privileged \
-    gcr.io/google_containers/hyperkube:v0.14.1 \
+    meteorhacks/hyperkube \
       /hyperkube proxy \
         --master=http://127.0.0.1:8080 \
         --v=2
 
 ## kubectl
-cat <<EOF > /usr/local/bin/kubectl
-#!/bin/bash
-ARGS="$1 $2 $3 $4 $5 $6 $7 $8 $9"
-docker run --rm --net=host meteorhacks/hyperkube /bin/bash -c "/kubectl $ARGS"
-EOF
+docker run --rm -v /usr/local/bin:/_bin meteorhacks/hyperkube /bin/bash -c "cp /kubectl /_bin"
 chmod +x /usr/local/bin/kubectl
 
 ## Add DNS Support
