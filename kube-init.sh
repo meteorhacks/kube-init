@@ -168,14 +168,17 @@ waitFor() {
 }
 
 echo
-echo "=> Waiting for ETCD. (this will take upto 2-5 minute)"
+echo "=> Waiting for ETCD. (takes upto 2-5 minute)"
 waitFor "wget -qO- http://127.0.0.1:4001/version | grep releaseVersion"
 echo "=>  ETCD is now online."
 
 echo
-echo "=> Waiting for Kubernates API. (this take upto 2-5 minute)"
+echo "=> Waiting for Kubernates API. (takes upto 2-5 minute)"
 waitFor "wget -qO- http://127.0.0.1:8080/version | grep major"
 echo "=>  Kubernates API is now online."
+
+echo
+echo "=> Setting up DNS confgurations"
 
 kubectl create -f /tmp/kube-dns-rc.yaml
 kubectl create -f /tmp/kube-dns-service.yaml
@@ -183,14 +186,14 @@ kubectl create -f /tmp/kube-dns-service.yaml
 rm /tmp/kube-dns-rc.yaml /tmp/kube-dns-service.yaml
 
 echo
-echo "=> Waiting for DNS setup comes online. (takes upto 2-5 minute)"
+echo "=> Waiting for DNS confgurations (takes upto 2-5 minute)"
 waitFor 'kubectl get pod -l k8s-app=kube-dns | grep Running'
 echo "=>  DNS confguration completed."
 
 ## Done
 echo
-echo
+echo "------------------------------------------------------"
 echo "=> Installed a Standalone Kubernates Cluster!"
 echo "->  type "kubectl" to start playing with the cluster"
-echo
+echo "------------------------------------------------------"
 echo
