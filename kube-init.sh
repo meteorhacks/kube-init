@@ -169,7 +169,7 @@ waitFor() {
 
 echo
 echo "=> Waiting for ETCD. (takes upto 2-5 minute)"
-waitFor "wget -qO- http://127.0.0.1:4001/version | grep releaseVersion"
+waitFor "wget -qO- http://127.0.0.1:4001/version | grep etcd"
 echo "=>  ETCD is now online."
 
 echo
