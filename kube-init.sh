@@ -16,9 +16,9 @@ wget -qO- https://get.docker.com/ | sh
 
 ## ETCD
 docker run \
+    -d \
     --net=host \
-    -d kubernetes/etcd:2.0.5.1 \
-    /usr/local/bin/etcd \
+    quay.io/coreos/etcd:v2.0.9 \
         --addr=127.0.0.1:4001 \
         --bind-addr=0.0.0.0:4001 \
         --data-dir=/var/etcd/data
