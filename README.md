@@ -16,6 +16,5 @@ Now we need to configure your local machine to access the Kubernetes network.
 3. Now, you can access IPs assigned by kubernetes directly from your browser
 
 ### Start Learning
-1. Starting Learning Kuberneted from here: <>
-2. Then choose any tutorial you like and start playing with kubernetes
-3. You can also select our step by step guide to Kubernetes.
+1. Starting Learning Kuberneted from here: https://meteorhacks.com/learn-kubernetes-the-future-of-the-cloud.html
+2. Then you can choose any tutorial you like and start playing with kubernetes
