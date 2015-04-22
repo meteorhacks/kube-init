@@ -192,8 +192,9 @@ echo "=>  DNS confguration completed."
 
 ## Done
 echo
-echo "------------------------------------------------------"
+echo "------------------------------------------------------------------"
 echo "=> Installed a Standalone Kubernates Cluster!"
 echo "->  type "kubectl" to start playing with the cluster"
-echo "------------------------------------------------------"
+echo "->  to learn about Kubernetes, visit here: http://goo.gl/jmxn2W"
+echo "------------------------------------------------------------------"
 echo
