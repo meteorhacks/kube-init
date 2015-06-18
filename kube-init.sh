@@ -24,6 +24,11 @@ docker run \
         --data-dir=/var/etcd/data
 
 ## HyperKube apiserver
+# here we set the address to `0.0.0.0`
+# that's because we need to bind the api server with all IPs.
+# So, in kube-dns `kube2sky` can connect to api server via
+# docker's IP bridge IP 
+# otherwise, we need to go through a lot of security related stuff
 docker run \
     --net=host \
     -d \
@@ -31,7 +36,7 @@ docker run \
     meteorhacks/hyperkube \
       /hyperkube apiserver \
       --portal_net=10.0.0.1/24 \
-      --address=127.0.0.1 \
+      --address=0.0.0.0 \
       --etcd_servers=http://127.0.0.1:4001 \
       --cluster_name=kubernetes \
       --v=2
@@ -89,71 +94,68 @@ chmod +x /usr/local/bin/kubectl
 
 ## Add DNS Support
 cat <<EOF > /tmp/kube-dns-rc.yaml
+apiVersion: v1beta3
 kind: ReplicationController
-apiVersion: v1beta1
-id: kube-dns
-namespace: default
-labels:
-  k8s-app: kube-dns
-  kubernetes.io/cluster-service: "true"
-desiredState:
-  replicas: 1
-  replicaSelector:
+metadata:
+  labels:
     k8s-app: kube-dns
-  podTemplate:
-    labels:
-      name: kube-dns
-      k8s-app: kube-dns
-      kubernetes.io/cluster-service: "true"
-    desiredState:
-      manifest:
-        version: v1beta2
-        id: kube-dns
-        dnsPolicy: "Default"  # Don't use cluster DNS.
-        containers:
-          - name: etcd
-            image: quay.io/coreos/etcd:v2.0.3
-            command: [
-                    # entrypoint = "/etcd",
-                    "-listen-client-urls=http://0.0.0.0:2379,http://0.0.0.0:4001",
-                    "-initial-cluster-token=skydns-etcd",
-                    "-advertise-client-urls=http://127.0.0.1:4001",
-            ]
-          - name: kube2sky
-            image: gcr.io/google_containers/kube2sky:1.1
-            command: [
-                    # entrypoint = "/kube2sky",
-                    "-domain=kubernetes.local",
-            ]
-          - name: skydns
-            image: gcr.io/google_containers/skydns:2015-03-11-001
-            command: [
-                    # entrypoint = "/skydns",
-                    "-machines=http://localhost:4001",
-                    "-addr=0.0.0.0:53",
-                    "-domain=kubernetes.local.",
-            ]
-            ports:
-              - name: dns
-                containerPort: 53
-                protocol: UDP
+  name: kube-dns
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    k8s-app: kube-dns
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-dns
+    spec:
+      dnsPolicy: "Default"
+      containers:
+      - args: [
+          "-listen-client-urls=http://0.0.0.0:2379,http://0.0.0.0:4001",
+          "-initial-cluster-token=skydns-etcd",
+          "-advertise-client-urls=http://127.0.0.1:4001"
+        ]
+        image: quay.io/coreos/etcd:v2.0.3
+        name: etcd
+      - args: [
+          "-domain=kubernetes.local.",
+          # we are using docker's default bridge IP here
+          # that's the only way we can connect inside from the pod
+          "--kube_master_url=http://172.17.42.1:8080"
+        ]
+        image: gcr.io/google_containers/kube2sky:1.9
+        name: kube2sky
+      - args: [
+          "-machines=http://localhost:4001",
+          "-addr=0.0.0.0:53",
+          "-domain=kubernetes.local.",
+        ]
+        image: gcr.io/google_containers/skydns:2015-03-11-001
+        name: skydns
+        ports:
+        - containerPort: 53
+          name: dns
+          protocol: UDP
 EOF
 
 cat <<EOF > /tmp/kube-dns-service.yaml
+apiVersion: v1beta3
 kind: Service
-apiVersion: v1beta1
-id: kube-dns
-namespace: default
-protocol: UDP
-port: 53
-portalIP: 10.0.0.10
-containerPort: 53
-labels:
-  k8s-app: kube-dns
+metadata:
+  labels:
+    k8s-app: kube-dns
   name: kube-dns
-  kubernetes.io/cluster-service: "true"
-selector:
-  k8s-app: kube-dns
+  namespace: default
+spec:
+  portalIP: 10.0.0.10
+  ports:
+  - port: 53
+    protocol: UDP
+    targetPort: 53
+  selector:
+    k8s-app: kube-dns
 EOF
 
 waitFor() {
@@ -187,7 +189,7 @@ rm /tmp/kube-dns-rc.yaml /tmp/kube-dns-service.yaml
 
 echo
 echo "=> Waiting for DNS confgurations (takes upto 2-5 minute)"
-waitFor 'kubectl get pod -l k8s-app=kube-dns | grep Running'
+waitFor 'kubectl get pod -l k8s-app=kube-dns | grep Running | grep "3/3"'
 echo "=>  DNS confguration completed."
 
 ## Done
