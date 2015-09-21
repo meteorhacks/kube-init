@@ -5,7 +5,7 @@ Easiest way to deploy a Kubernetes Cluster to learn Kubernetes
 ### Deploy the Cluster
 
 1. Create a Ubuntu 64 Server/VM from your favourite cloud provider
-2. Then apply: `wget -qO- http://git.io/veKlu | sudo sh`
+2. Then apply: `wget -qO- https://git.io/veKlu | sudo sh`
 3. Now you've a standalone Kubernetes cluster running inside your server
 
 ### Configure Network Access (optional)
